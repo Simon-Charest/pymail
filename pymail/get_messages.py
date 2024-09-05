@@ -110,7 +110,9 @@ def get_messages(
             to = to.decode(encoding, "replace")
 
         if isinstance(subject, bytes):
-            subject = subject.decode(encoding, "replace").replace('"', "")
+            subject = subject.decode(encoding, "replace")
+
+        subject = subject.replace('"', "'")
 
         # Prepare text content
         text: str = f"""\
@@ -157,7 +159,7 @@ Body: {body}
             break
 
     if verbose:
-        print(f"Logging out...")
+        print("\nLogging out...")
 
     mail.logout()
 

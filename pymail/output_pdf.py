@@ -1,5 +1,8 @@
+from io import StringIO
+from typing import TextIO
 from fpdf import FPDF
 from pathlib import Path
+import sys
 
 
 def output_pdf(
@@ -27,5 +30,12 @@ def output_pdf(
     
     pdf.multi_cell(width, height, text)
 
+    # Silence error handling
+    original_stderr: TextIO = sys.stderr
+    sys.stderr = StringIO()
+
     # Save the PDF
     pdf.output(path)
+
+    # Restore error handling
+    sys.stderr = original_stderr
