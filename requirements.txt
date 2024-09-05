@@ -1,2 +1,3 @@
 chardet
-fpdf
+fpdf2
+progress

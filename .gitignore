@@ -1,3 +1,5 @@
-__pycache__/
 .venv/
+__pycache__/
 pymail/data/*
+!pymail/data/config.json.bak
+!pymail/data/timeline_template.html
