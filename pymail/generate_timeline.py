@@ -21,7 +21,7 @@ def generate_timeline(
     # Add content
     content = content.replace("%TIMELINE_SCRIPT_FILE%", timeline_script_file)
     content = content.replace("%TIMELINE_STYLE_FILE%", timeline_style_file)
-    content = content.replace("%ITEMS%", str(items).replace("'", '"'))
+    content = content.replace("%ITEMS%", str(items))
 
     # Write timeline
     stream: TextIOWrapper = open(output_file, "w", encoding=encoding)
