@@ -1,8 +1,11 @@
+from bs4 import BeautifulSoup
 from datetime import datetime
 from email import message_from_bytes
 from email.header import decode_header
-from email.message import Message
+from email.message import EmailMessage, Message
+from email.policy import default
 from imaplib import IMAP4_SSL
+from io import TextIOWrapper
 from os.path import exists
 from pathlib import Path
 from progress.bar import Bar
@@ -91,7 +94,7 @@ def get_messages(
 
         # Parse the email message
         string: bytes = data[0][1]  # Raw email message
-        message: Message = message_from_bytes(string)
+        message: Message = message_from_bytes(string, policy=default)
 
         # Extract email information
         message_id: str = message["Message-ID"]
@@ -103,6 +106,7 @@ def get_messages(
         subject: (str | bytes) = decode_header(str(message["Subject"]))[0][0]
         body: str = get_body(message)
 
+        # Process data
         if isinstance(from_, bytes):
             from_ = from_.decode(encoding, "replace")
 
@@ -113,6 +117,36 @@ def get_messages(
             subject = subject.decode(encoding, "replace")
 
         subject = subject.replace('"', "'")
+        beautiful_soup: BeautifulSoup = BeautifulSoup(body, "html.parser")
+        body = beautiful_soup.get_text("\n", True)
+        
+        # Get file path
+        sublabel: str = get_sublabel(sublabels, [message_id, from_, to, subject])
+        date_time: datetime = parse_date_time(date)
+        stem: str = date_time.strftime(datetime_filename_format)
+        file: str = f"{stem}.pdf"
+        path: Path = output_directory.joinpath(sublabel).joinpath(file)
+
+        # Creating attachments
+        part: EmailMessage
+        attachments: list[str] = []
+        
+        for part in message.iter_parts():
+            if part.get_content_disposition() == "attachment":
+                attachment_directory: Path = output_directory.joinpath(sublabel).joinpath(stem)
+                attachment_directory.mkdir(parents=True, exist_ok=True)
+                filename: str = part.get_filename()
+
+                # Write attachement to file
+                string: str = part.get_payload(decode=True)
+
+                if string:
+                    stream: TextIOWrapper = open(attachment_directory.joinpath(filename), "wb")                
+                    stream.write(string)
+                    stream.close()
+
+                # Append attachement hyperlink to PDF
+                attachments.append(f"./{stem}/{filename}")
 
         # Prepare text content
         text: str = f"""\
@@ -123,21 +157,14 @@ To: {to}
 CC: {cc}
 BCC: {bcc}
 Subject: {subject}
-
+Attachments:
+{", ".join(attachment for attachment in attachments)}
 Body: {body}
 """
-        
-        # Get file path
-        date_time: datetime = parse_date_time(date)
-        file: str = f"{date_time.strftime(datetime_filename_format)}.pdf"
-        sublabel: str = get_sublabel(sublabels, [message_id, from_, to, subject])
-        path: Path = output_directory.joinpath(sublabel).joinpath(file)
 
-        # Create output directory structure
-        path.parent.mkdir(parents=True, exist_ok=True)
-        
         # Print to PDF
         if should_output_pdf:
+            path.parent.mkdir(parents=True, exist_ok=True)
             output_pdf(text, path, fname=font_file)
 
         # Append data for timeline

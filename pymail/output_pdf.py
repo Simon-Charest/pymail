@@ -1,7 +1,7 @@
-from io import StringIO
-from typing import TextIO
 from fpdf import FPDF
+from io import StringIO
 from pathlib import Path
+from typing import TextIO
 import sys
 
 

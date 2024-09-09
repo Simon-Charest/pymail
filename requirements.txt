@@ -1,3 +1,4 @@
+beautifulsoup4
 chardet
 fpdf2
 progress
