@@ -10,6 +10,7 @@ from typing import Any
 # Pymail
 from generate_timeline import generate_timeline
 from get_messages import get_messages
+from send_message import send_message
 from sort_recursively import sort_recursively
 
 ROOT_DIRECTORY: Path = Path(__file__).parent
@@ -47,9 +48,24 @@ def main(
     timeline_template_file: str = TIMELINE_TEMPLATE_FILE,
     timeline_file: str = TIMELINE_FILE,
     *,
-    delete: bool = DELETE,
-    
+    delete: bool = DELETE
 ) -> None:
+    """
+    configuration: dict = load(open(config_file, encoding=encoding))
+    send_message(
+        configuration["host"],
+        configuration["port"],
+        configuration["user"],
+        configuration["password.vk"],
+        configuration["tos"],
+        configuration["subject"],
+        configuration["reply_to"],
+        configuration["body"],
+        configuration["verbose"]
+    )
+    exit()
+    """
+
     if verbose:
         print(f"Loading configuration...")
 
@@ -91,6 +107,9 @@ def main(
 
     if verbose:
         print(f"** DONE **")
+
+
+
 
 
 if __name__ == "__main__":
