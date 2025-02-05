@@ -1,0 +1,36 @@
+{
+  "indent": 2,
+  "imap_server": "imap.gmail.com",
+  "imap_port": 993,
+  "smtp_port": 587,
+  "username": null,
+  "password": null,
+  "mailbox": null,
+  "output": "data/emails",
+  "charset": null,
+  "criteria": "ALL",
+  "message_parts": "(RFC822)",
+  "datetimes": {
+    "filenameFormat": "%Y-%m-%d_%Hh%Mm%Ss",
+    "format": "%Y-%m-%d %H:%M:%S"
+  },
+  "font": "DejaVuSans.ttf",
+  "pdf": true,
+  "timeline": {
+    "styles": [
+      "vis-timeline-graph2d.css",
+      "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.css"
+    ],
+    "scripts": [
+      "vis-timeline-graph2d.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.min.js"
+    ],
+    "template": "timeline_template.html",
+    "output": "data/timeline.html"
+  },
+  "tos": null,
+  "subject": "Test",
+  "reply_to": null,
+  "body": "Ceci est un test. Svp répondre à ce courriel afin d'en confirmer la réception. Merci.",
+  "sublabels": null
+}

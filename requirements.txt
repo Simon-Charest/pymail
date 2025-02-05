@@ -1,4 +1,4 @@
-beautifulsoup4
 chardet
-fpdf2
+pandas
 progress
+requests

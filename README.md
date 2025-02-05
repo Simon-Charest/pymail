@@ -38,7 +38,7 @@ python -m venv .venv
 ```
 6. Activate virtual environment:
 ```
-.venv\Scripts\Activate.ps1
+.\venv.ps1
 ```
 7. Upgrade pip:
 ```
@@ -54,7 +54,7 @@ python pymail
 ```
 
 ## License
-- Distributed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE.txt](./LICENSE.txt) for more information.
+- Distributed under the [MIT License](https://opensource.org/license/mit/). See [license.txt](./license.txt) for more information.
 
 ## Contact
 - GitHub: [Pymail](https://github.com/Simon-Charest/pymail);

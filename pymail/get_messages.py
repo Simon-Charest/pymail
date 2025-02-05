@@ -6,10 +6,8 @@ from email.message import EmailMessage, Message
 from email.policy import default
 from imaplib import IMAP4_SSL
 from io import TextIOWrapper
-from os.path import exists
 from pathlib import Path
 from progress.bar import Bar
-from shutil import rmtree
 from typing import Any
 
 # Pymail
@@ -37,62 +35,39 @@ def get_messages(
     font_file: Path = None,
     should_output_pdf: bool = True,
     max_count: int = None,
-    verbose: bool = False,
-    *,
-    delete: bool = False
+    verbose: bool = False
 ) -> list[dict[str, Any]]:
-    if delete and exists(output_directory):
-        if verbose:
-            print(f"Deleting previous result set...")
-
-        rmtree(output_directory)
-
-    if verbose:
-        print(f"Connecting to {host}:{port} using IMAP4_SSL...")
-
+    if verbose: print(f"Connecting to {host}:{port} using IMAP4_SSL...")
     mail: IMAP4_SSL = IMAP4_SSL(host, port)
 
-    if verbose:
-        print(f"Logging as user {user}...")
-    
+    if verbose: print(f"Logging as user {user}...")
     mail.login(user, password)
 
-    if verbose:
-        print(f"Selecting mailbox {mailbox}...")
-    
+    if verbose: print(f"Selecting mailbox {mailbox}...")
     mail.select(mailbox)
 
-    if verbose:
-        print(f"Searching for emails...")
-
+    if verbose: print(f"Searching for emails...")
     data: list[bytes]
     _, data = mail.search(charset, criteria)
 
-    if verbose:
-        print(f"Splitting emails...")
-
+    if verbose: print(f"Splitting emails...")
     message_sets: list[bytes] = data[0].split()
 
-    if verbose:
-        print(f"Found {len(message_sets)} email messages.")
+    if verbose: print(f"Found {len(message_sets)} email messages.")
     
     # Iterate over the list of email IDs
-    message_set: str
     count: int
+    message_set: str
     items: list[dict[str, Any]] = []
 
-    if verbose:
-        print("Processing messages...")
-
-    if not max_count:
-        max_count = len(message_sets)
-
+    if not max_count: max_count = len(message_sets)
+    if verbose: print(f"Processing {max_count} messages...")
     bar: Bar = Bar("Processing...", max=max_count)
-
+    
     for count, message_set in enumerate(message_sets, 1):
         _, data = mail.fetch(message_set, message_parts)  # Fetch email by ID
 
-        # Parse the email message
+        # Parse email message
         string: bytes = data[0][1]  # Raw email message
         message: Message = message_from_bytes(string, policy=default)
 
@@ -107,15 +82,9 @@ def get_messages(
         body: str = get_body(message)
 
         # Process data
-        if isinstance(from_, bytes):
-            from_ = from_.decode(encoding, "replace")
-
-        if isinstance(to, bytes):
-            to = to.decode(encoding, "replace")
-
-        if isinstance(subject, bytes):
-            subject = subject.decode(encoding, "replace")
-
+        if isinstance(from_, bytes): from_ = from_.decode(encoding, "replace")
+        if isinstance(to, bytes): to = to.decode(encoding, "replace")
+        if isinstance(subject, bytes): subject = subject.decode(encoding, "replace")
         subject = subject.replace('"', "'")
         beautiful_soup: BeautifulSoup = BeautifulSoup(body, "html.parser")
         body = beautiful_soup.get_text("\n", True)
@@ -182,12 +151,9 @@ Body: {body}
 
         bar.next()
 
-        if max_count and count >= max_count:
-            break
+        if max_count and count >= max_count: break
 
-    if verbose:
-        print("\nLogging out...")
-
+    if verbose: print("\nLogging out...")
     mail.logout()
 
     return items

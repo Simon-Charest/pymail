@@ -1,5 +1,9 @@
 """
-Usage: python pymail
+Usage: python pymail [-s] [-d] [-m #] [-g] [-e] [-r] [-n] [-v]
+Examples:
+python pymail -s -d -m 10 -g -e -r -v
+python pymail -s -e -r -v
+python pymail -n -v
 """
 
 from io import TextIOWrapper
@@ -8,108 +12,94 @@ from pathlib import Path
 from typing import Any
 
 # Pymail
-from generate_timeline import generate_timeline
+from argparse import Namespace
+from delete import delete
+from generate_graph import generate_graph
+from generate_report import generate_report
 from get_messages import get_messages
+from get_path import get_path
+from parse_arguments import parse_arguments
 from send_message import send_message
 from sort_recursively import sort_recursively
 
-ROOT_DIRECTORY: Path = Path(__file__).parent
-DATA_DIRECTORY: Path = ROOT_DIRECTORY.joinpath("data")
-CONFIG_FILE: Path = DATA_DIRECTORY.joinpath("config.json")
-FONT_FILE: Path = DATA_DIRECTORY.joinpath("DejaVuSans.ttf")
-TIMELINE_SCRIPT_FILE: str = "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.min.js"
-#TIMELINE_SCRIPT_FILE: str = f"file:///{DATA_DIRECTORY.joinpath('vis-timeline-graph2d.min.js')}"
-TIMELINE_STYLE_FILE: str = "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.css"
-#TIMELINE_STYLE_FILE: str = f"file:///{DATA_DIRECTORY.joinpath('vis-timeline-graph2d.css')}"
-TIMELINE_TEMPLATE_FILE: Path = DATA_DIRECTORY.joinpath("timeline_template.html")
-OUTPUT_DIRECTORY: Path = DATA_DIRECTORY.joinpath("email")
-TIMELINE_FILE: Path = OUTPUT_DIRECTORY.joinpath("timeline.html")
-ENCODING: str = "utf-8"
-INDENT: int = 2
-DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
-DATETIME_FILENAME_FORMAT: str = "%Y-%m-%d_%Hh%Mm%Ss"
-SHOULD_OUTPUT_PDF: bool = True
-MAX_COUNT: int = None
-VERBOSE: bool = True
-DELETE: bool = True
+current_directory: Path = Path(__file__).parent
+config_file: Path = current_directory.joinpath("config.json")
+encoding: Path = "utf-8"
 
 
-def main(
-    config_file: Path = CONFIG_FILE,
-    output_directory: Path = OUTPUT_DIRECTORY,
-    encoding: str = ENCODING,
-    indent: int = INDENT,
-    font_file: Path = FONT_FILE,
-    should_output_pdf: bool = SHOULD_OUTPUT_PDF,
-    max_count: int = MAX_COUNT,
-    verbose: bool = VERBOSE,
-    timeline_script_file: str = TIMELINE_SCRIPT_FILE,
-    timeline_style_file: str = TIMELINE_STYLE_FILE,
-    timeline_template_file: str = TIMELINE_TEMPLATE_FILE,
-    timeline_file: str = TIMELINE_FILE,
-    *,
-    delete: bool = DELETE
-) -> None:
-    """
-    configuration: dict = load(open(config_file, encoding=encoding))
-    send_message(
-        configuration["host"],
-        configuration["port"],
-        configuration["user"],
-        configuration["password.vk"],
-        configuration["tos"],
-        configuration["subject"],
-        configuration["reply_to"],
-        configuration["body"],
-        configuration["verbose"]
-    )
-    exit()
-    """
+def main() -> None:
+    arguments: Namespace = parse_arguments()
 
-    if verbose:
-        print(f"Loading configuration...")
-
+    if arguments.verbose: print(f"Loading configuration...")
     stream: TextIOWrapper = open(config_file, "r+", encoding=encoding)
     config: dict = load(stream)
 
-    if verbose:
-        print(f"Sorting sublabels...")
+    if arguments.save_configuration:
+        if arguments.verbose: print(f"Sorting sublabels...")
+        config["sublabels"] = sort_recursively(config["sublabels"])
 
-    config["sublabels"] = sort_recursively(config["sublabels"])
-
-    if verbose:
-        print(f"Saving configuration...")
-
-    stream.seek(0)
-    dump(config, stream, ensure_ascii=encoding != "utf-8", indent=indent)
-    stream.truncate()
+        if arguments.verbose: print(f"Saving configuration...")
+        stream.seek(0)
+        dump(config, stream, ensure_ascii=encoding != "utf-8", indent=config["indent"])
+        stream.truncate()
+    
+    if arguments.verbose: print(f"Closing configuration...")
     stream.close()
 
-    messages: list[dict[str, Any]] = get_messages(
-        config["imap_server"],
-        config["imap_port"],    
-        config["username"],
-        config["password"],
-        config["mailbox"],
-        config["sublabels"],
-        output_directory,
-        font_file=font_file,
-        should_output_pdf=should_output_pdf,
-        max_count=max_count,
-        verbose=verbose,
-        delete=delete
+    if arguments.delete_messages:
+        if arguments.verbose: print(f"Deleting previous result set...")
+        delete(current_directory.joinpath(config["output"]))
+
+    if arguments.get_messages:
+        if arguments.verbose: print("Getting messages from server...")
+        messages: list[dict[str, Any]] = get_messages(
+            config["imap_server"],
+            config["imap_port"],    
+            config["username"],
+            config["password"],
+            config["mailbox"],
+            config["sublabels"],
+            current_directory.joinpath(config["output"]),
+            config["charset"],
+            config["criteria"],
+            config["message_parts"],
+            encoding,
+            config["datetimes"]["filenameFormat"],
+            config["datetimes"]["format"],
+            current_directory.joinpath(config["font"]),
+            config["pdf"],
+            max_count=arguments.max_count,
+            verbose=arguments.verbose
+        )
+
+    if arguments.send_message:
+        if arguments.verbose: print("Sending message...")
+        send_message(
+            config["imap_server"],
+            config["smtp_port"],
+            config["username"],
+            config["password"],
+            config["tos"],
+            config["subject"],
+            config["reply_to"],
+            config["body"],
+            arguments.verbose
+        )
+
+    if arguments.verbose: print(f"Generating graph...")
+    generate_graph(
+        messages,
+        get_path(config["timeline"]["scripts"], current_directory),
+        get_path(config["timeline"]["styles"], current_directory),
+        current_directory.joinpath(config["timeline"]["template"]),
+        current_directory.joinpath(config["timeline"]["output"]),
+        encoding
     )
 
-    if verbose:
-        print(f"Generating timeline...")
-
-    generate_timeline(messages, timeline_script_file, timeline_style_file, timeline_template_file, timeline_file)
-
-    if verbose:
-        print(f"** DONE **")
-
-
-
+    if arguments.verbose: print(f"Generating report...")
+    generate_report(messages)
+    
+    if arguments.verbose: print(f"** DONE **")
 
 
 if __name__ == "__main__":

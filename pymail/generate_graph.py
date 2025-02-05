@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import Any
 
 
-def generate_timeline(
+def generate_graph(
     items: list[dict[str, Any]],
-    timeline_script_file: Path,
-    timeline_style_file: Path,
+    timeline_script_file: str,
+    timeline_style_file: str,
     timeline_template_file: Path,
     output_file: Path,
     encoding: str = "utf-8"
