@@ -1,4 +1,5 @@
 chardet
+openpyxl
 pandas
 progress
 requests

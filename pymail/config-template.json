@@ -16,7 +16,7 @@
   },
   "font": "DejaVuSans.ttf",
   "pdf": true,
-  "timeline": {
+  "graph": {
     "styles": [
       "vis-timeline-graph2d.css",
       "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.css"
@@ -28,6 +28,7 @@
     "template": "timeline_template.html",
     "output": "data/timeline.html"
   },
+  "report": "data/timeline.xlsx",
   "tos": null,
   "subject": "Test",
   "reply_to": null,

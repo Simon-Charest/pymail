@@ -1,9 +1,8 @@
 """
 Usage: python pymail [-s] [-d] [-m #] [-g] [-e] [-r] [-n] [-v]
 Examples:
-python pymail -s -d -m 10 -g -e -r -v
-python pymail -s -e -r -v
-python pymail -n -v
+- Get messages: python pymail -s -d -m 10 -g -e -r -v
+- Send test email: python pymail -n -v
 """
 
 from io import TextIOWrapper
@@ -89,15 +88,15 @@ def main() -> None:
     if arguments.verbose: print(f"Generating graph...")
     generate_graph(
         messages,
-        get_path(config["timeline"]["scripts"], current_directory),
-        get_path(config["timeline"]["styles"], current_directory),
-        current_directory.joinpath(config["timeline"]["template"]),
-        current_directory.joinpath(config["timeline"]["output"]),
+        get_path(config["graph"]["scripts"], current_directory),
+        get_path(config["graph"]["styles"], current_directory),
+        current_directory.joinpath(config["graph"]["template"]),
+        current_directory.joinpath(config["graph"]["output"]),
         encoding
     )
 
     if arguments.verbose: print(f"Generating report...")
-    generate_report(messages)
+    generate_report(messages, current_directory.joinpath(config["report"]))
     
     if arguments.verbose: print(f"** DONE **")
 
