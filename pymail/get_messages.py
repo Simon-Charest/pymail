@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup
 from datetime import datetime
 from email import message_from_bytes
 from email.header import decode_header
@@ -16,6 +15,7 @@ from get_body import get_body
 from get_sublabel import get_sublabel
 from output_pdf import output_pdf
 from parse_date_time import parse_date_time
+from strip import strip
 
 
 def get_messages(
@@ -80,14 +80,13 @@ def get_messages(
         bcc: str = decode_header(message["BCC"])[0][0] if "BCC" in message else None
         subject: (str | bytes) = decode_header(str(message["Subject"]))[0][0]
         body: str = get_body(message)
+        body = strip(body)
 
         # Process data
         if isinstance(from_, bytes): from_ = from_.decode(encoding, "replace")
         if isinstance(to, bytes): to = to.decode(encoding, "replace")
         if isinstance(subject, bytes): subject = subject.decode(encoding, "replace")
         subject = subject.replace('"', "'")
-        beautiful_soup: BeautifulSoup = BeautifulSoup(body, "html.parser")
-        body = beautiful_soup.get_text("\n", True)
         
         # Get file path
         sublabel: str = get_sublabel(sublabels, [message_id, from_, to, subject])
@@ -141,13 +140,26 @@ Body: {body}
         start: str = date_time.strftime(datetime_format)
         background_color: str = convert_to_color(sublabel)
         items.append({
+            # For graph
             "id": count,
             "content": f"{sublabel}<br />{subject}<br />{start}",
             "link": link,
             "start": start, 
             "timeline": sublabel,
-            "style": f"background-color: {background_color};"
+            "style": f"background-color: {background_color};",
+
+            # For report
+            "messageId": message_id,
+            "from": from_,
+            "to": to,
+            "cc": cc,
+            "bcc": bcc,
+            "subject": subject,
+            "body": f'=HYPERLINK("{link}", "{link}")'
         })
+
+        for count, attachment in enumerate(attachments, start=1):
+            items[len(items) - 1][f"attachment_{count}"] = f'=HYPERLINK("./{sublabel}/{attachment.strip("./")}", "./{sublabel}/{attachment.strip("./")}")'
 
         bar.next()
 

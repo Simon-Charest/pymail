@@ -16,7 +16,6 @@ from delete import delete
 from generate_graph import generate_graph
 from generate_report import generate_report
 from get_messages import get_messages
-from get_path import get_path
 from parse_arguments import parse_arguments
 from send_message import send_message
 from sort_recursively import sort_recursively
@@ -87,9 +86,9 @@ def main() -> None:
 
     if arguments.verbose: print(f"Generating graph...")
     generate_graph(
-        messages,
-        get_path(config["graph"]["scripts"], current_directory),
-        get_path(config["graph"]["styles"], current_directory),
+        [{key: message[key] for key in ["id", "content", "link", "start", "timeline", "style"] if key in message} for message in messages],
+        config["graph"]["script"],
+        config["graph"]["style"],
         current_directory.joinpath(config["graph"]["template"]),
         current_directory.joinpath(config["graph"]["output"]),
         encoding

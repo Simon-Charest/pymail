@@ -17,18 +17,12 @@
   "font": "DejaVuSans.ttf",
   "pdf": true,
   "graph": {
-    "styles": [
-      "vis-timeline-graph2d.css",
-      "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.css"
-    ],
-    "scripts": [
-      "vis-timeline-graph2d.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.min.js"
-    ],
+    "style": "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.css",
+    "script": "https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.3/vis-timeline-graph2d.min.js",
     "template": "timeline_template.html",
-    "output": "data/timeline.html"
+    "output": "data/emails/timeline.html"
   },
-  "report": "data/timeline.xlsx",
+  "report": "data/emails/timeline.xlsx",
   "tos": null,
   "subject": "Test",
   "reply_to": null,
